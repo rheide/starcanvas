@@ -1,0 +1,15 @@
+StarCanvas displays an interactive of a galaxy in an HTML canvas element, dividing into selectable grids of 20LYx20LY (based on Star Trek lore).
+
+Online example: http://www.colorfulwolf.com/dev/starcanvas/demo/
+
+The map area is draggable and zoomable. Grid click events can be intercepted using a listener (see demo/index.html).
+
+Backgrounds are automatically tiled. Multiple backgrounds can be specified, each for a different zoom level with a different alpha range (see demo/index.html).
+
+Requirements:
+- jquery
+- jquery.mousewheel.js
+
+Disclaimer: the images and font used in the demo page are not owned by me and are merely supplied as an example.
+
+License: Do What the Fuck You Want to. (http://www.wtfpl.net/). Would be great if you give me a shout back if you do end up using it :)
