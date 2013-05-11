@@ -1,4 +1,4 @@
-StarCanvas displays an interactive of a galaxy in an HTML canvas element, dividing into selectable grids of 20LYx20LY (based on Star Trek lore).
+StarCanvas displays an interactive map of a galaxy in an HTML canvas element, dividing into selectable grids of 20LYx20LY (based on Star Trek lore).
 
 Online example: http://www.colorfulwolf.com/dev/starcanvas/demo/
 
