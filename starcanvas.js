@@ -1,48 +1,12 @@
-var imageCache = {};
-
-function getCachedImage(imgName) {
-	var img = imageCache[imgName];
-	return imageCache[imgName];
-}
-
-function setCachedImage(imgName, img) {
-	imageCache[imgName] = img;
-}
-
-function pad(num, size) {
-	var s = Math.abs(num)+"";
-	while (s.length < size) s = "0" + s;
-	if (num < 0) { s = "-" + s; }
-	return s;
-}
-
-var Point = function(x, y) {
+var SCPoint = function(x, y) {
 	this.x = x;
 	this.y = y;
 	return this;
 }
-Point.prototype.getKey = function() {
-	return this.x + "." + this.y;
-}
-
-var Grid = function() {
-	this.x = 0;
-	this.y = 0;
-	this.name = "";
-	this.defined = false;
-	this.selected = false;
-	return this;
-}
-Grid.prototype.getKey = function() {
-	return pad(this.x, 2) + "." + pad(this.y, 2);
-}
-Grid.prototype.equals = function(otherGrid) {
-	if (!otherGrid) { return false; }
-	return otherGrid.x == this.x && otherGrid.y == this.y;
-}
 
 function StarCanvas($canvas) {
 
+	this.imageCache = {};
 	this.sectorSize = 20.0; // Lightyears
 	this.baseScale = 10.0; // Pixels per lightyear
 
@@ -53,7 +17,7 @@ function StarCanvas($canvas) {
 	this.jqCanvas = $canvas;
 	this.offsetX = 0;
 	this.offsetY = 0;
-	this.lastCoord = new Point(0,0);
+	this.lastCoord = new SCPoint(0,0);
 	this.canvas = $canvas[0];
 	this.width = $canvas.parent().width();
 	this.height = this.canvas.height;
@@ -75,19 +39,25 @@ StarCanvas.prototype.init = function() {
 	var self = this;
 	for (i=0;i<this.backgrounds.length;i++) {
 		var bg = this.backgrounds[i];
-		var bgImage = getCachedImage(bg.url);
+		var bgImage = this.getCachedImage(bg.url);
 		if (!bgImage) {
 			self.loadImage(bg.url);
 		}
 	}
 	this.draw();
 }
+StarCanvas.prototype.getCachedImage = function(imgName) {
+	return this.imageCache[imgName];
+}
+StarCanvas.prototype.setCachedImage = function(imgName, img) {
+	this.imageCache[imgName] = img;
+}
 StarCanvas.prototype.loadImage = function(imageUrl) {
 	var self = this;
 	var img = new Image();
 	img.src = imageUrl;
 	img.onload = function() {
-		setCachedImage(imageUrl, img);
+		self.setCachedImage(imageUrl, img);
 		self.draw();
 	}
 }
@@ -114,8 +84,7 @@ StarCanvas.prototype.initMouseListeners = function() {
 			// a click event happened, we should parse
 			if (event.which != 1) return; // only left mouse click
 			if (self.selectedSector) {
-				var gridKey = self.selectedSector.getKey();
-				self.fireEvent("gridClicked", self.selectedSector);
+				self.fireGridClicked(self.selectedSector.x, self.selectedSector.y);
 			}
 		}
 		self.dragging = false;
@@ -130,7 +99,7 @@ StarCanvas.prototype.initMouseListeners = function() {
 	}
 
 	function onDragging(event){
-		var delta = new Point(event.clientX - self.lastCoord.x, event.clientY - self.lastCoord.y);
+		var delta = new SCPoint(event.clientX - self.lastCoord.x, event.clientY - self.lastCoord.y);
 		self.offsetX -= Math.floor(delta.x / self.scale);
 		self.offsetY -= Math.floor(delta.y / self.scale);
 		self.lastCoord.x = event.clientX;
@@ -141,13 +110,13 @@ StarCanvas.prototype.initMouseListeners = function() {
 	function onMouseMove(event){
 		// check if we're in a sector, mark as selected
 		self.dragging = true;
-		var p = new Point(event.pageX, event.pageY);
+		var p = new SCPoint(event.pageX, event.pageY);
 		p.x -= this.offsetLeft;
 		p.y -= this.offsetTop;
 
 		var gp = self.getGridPointAt(p);
 		if (!self.selectedSector || (gp.x != self.selectedSector.x || gp.y != self.selectedSector.y)) {
-			self.selectedSector = new Grid();
+			self.selectedSector = new SCPoint();
 			self.selectedSector.x = gp.x;
 			self.selectedSector.y = gp.y;
 			self.draw();
@@ -174,7 +143,7 @@ StarCanvas.prototype.getGridPointAt = function(clickPoint) {
 	return p;
 }
 StarCanvas.prototype.getPixelPointAt = function(clickPoint) {
-	var p = new Point(clickPoint.x, clickPoint.y);
+	var p = new SCPoint(clickPoint.x, clickPoint.y);
 	//console.log("C: " + p.x+","+p.y);
 	p.x = p.x / this.scale;
 	p.y = p.y / this.scale;
@@ -208,7 +177,7 @@ StarCanvas.prototype.drawBackground = function(ctx, bg) {
 		return;
 	}
 
-	var bgImage = getCachedImage(bg.url);
+	var bgImage = this.getCachedImage(bg.url);
 	if (!bgImage) {
 		return;
 	}
@@ -333,9 +302,9 @@ StarCanvas.prototype.drawGrids = function(ctx) {
 	}
 	ctx.restore();
 }
-StarCanvas.prototype.fireEvent = function(type, event) {
-	$.each(this.listeners[type], function(index, listenerFunction) {
-		listenerFunction(event);
+StarCanvas.prototype.fireGridClicked = function(gridX, gridY) {
+	$.each(this.listeners["gridClicked"], function(index, listenerFunction) {
+		listenerFunction(gridX, gridY);
 	});
 }
 StarCanvas.prototype.bind = function(type, listener) {

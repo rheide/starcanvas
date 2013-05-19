@@ -88,9 +88,8 @@
 			];
 
 			starCanvas.init();
-			starCanvas.bind("gridClicked", function(grid) {
-				console.log("Grid clicked! " + grid.getKey());
-				$("#title-link").text("StarCanvas Demo " + grid.getKey());
+			starCanvas.bind("gridClicked", function(gridX, gridY) {
+				$("#title-link").text("StarCanvas Demo " + gridX+","+gridY);
 			});
 		}
 	</script>
