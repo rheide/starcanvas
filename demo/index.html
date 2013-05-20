@@ -1,5 +1,6 @@
 <html>
 <head>
+	<title>StarCanvas Demo</title>
 	<style>
 		body {
 			background: black;
@@ -100,6 +101,9 @@
 			starCanvas.init();
 			starCanvas.bind("gridClicked", function(gridX, gridY) {
 				$("#title-link").text("StarCanvas Demo " + gridX+","+gridY);
+			});
+			starCanvas.bind("offsetChanged", function(minX, minY, maxX, maxY, scale) {
+				console.log("New offset: " + minX+","+minY+" - "+maxX+","+maxY+"  @  " + scale);
 			});
 		}
 	</script>

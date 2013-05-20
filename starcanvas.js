@@ -27,6 +27,7 @@ function StarCanvas($canvas) {
 
 	this.listeners = {
 		'gridClicked': [],
+		'offsetChanged': [],
 	};
 
 	this.backgrounds = [];
@@ -72,6 +73,7 @@ StarCanvas.prototype.initZooming = function() {
 		self.scale = Math.round(self.scale * zoomRound) / zoomRound;
 		console.log("New scale: " + self.scale);
 		self.draw();
+		self.fireOffsetChanged();
 	});
 }
 StarCanvas.prototype.initMouseListeners = function() {
@@ -89,6 +91,7 @@ StarCanvas.prototype.initMouseListeners = function() {
 			}
 		}
 		self.dragging = false;
+		self.fireOffsetChanged();
 	};
 
 	function onDragStart(event) {
@@ -132,6 +135,7 @@ StarCanvas.prototype.initMouseListeners = function() {
 		self.jqCanvas.unbind("mouseup", onDragEnd);
 		self.selectedSector = null;
 		self.draw();
+		self.fireOffsetChanged();
 	}
 
 	this.jqCanvas.bind('mousedown', onDragStart);
@@ -308,6 +312,14 @@ StarCanvas.prototype.drawGrids = function(ctx) {
 StarCanvas.prototype.fireGridClicked = function(gridX, gridY) {
 	$.each(this.listeners["gridClicked"], function(index, listenerFunction) {
 		listenerFunction(gridX, gridY);
+	});
+}
+StarCanvas.prototype.fireOffsetChanged= function() {
+	var self = this;
+	var minPoint = this.getPixelPointAt(new SCPoint(0, 0));
+	var maxPoint = this.getPixelPointAt(new SCPoint(this.width, this.height));
+	$.each(this.listeners["offsetChanged"], function(index, listenerFunction) {
+		listenerFunction(minPoint.x, minPoint.y, maxPoint.x, maxPoint.y, self.scale);
 	});
 }
 StarCanvas.prototype.bind = function(type, listener) {
