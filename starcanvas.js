@@ -11,6 +11,7 @@ function StarCanvas($canvas) {
 	this.baseScale = 10.0; // Pixels per lightyear
 
 	this.sectorZoomMin = 0.33; // Only draw sectors from this zoomlevel on
+	this.sectorZoomMax = 2.5; // Only draw sector selection until this zoomlevel
 
 	this.scale = 1.0;  // Zoom
 
@@ -100,8 +101,10 @@ StarCanvas.prototype.initMouseListeners = function() {
 
 	function onDragging(event){
 		var delta = new SCPoint(event.clientX - self.lastCoord.x, event.clientY - self.lastCoord.y);
-		self.offsetX -= Math.floor(delta.x / self.scale);
-		self.offsetY -= Math.floor(delta.y / self.scale);
+		var xDelta = delta.x / self.scale;
+		var yDelta = delta.y / self.scale;
+		self.offsetX -= xDelta;
+		self.offsetY -= yDelta;
 		self.lastCoord.x = event.clientX;
 		self.lastCoord.y = event.clientY;
 		self.draw();
@@ -167,7 +170,7 @@ StarCanvas.prototype.draw = function() {
 
 	ctx.save();
 	ctx.scale(this.scale, this.scale);
-	if (this.scale > this.sectorZoomMin) {
+	if (this.scale > this.sectorZoomMin && this.scale < this.sectorZoomMax) {
 		this.drawGrids(ctx);
 	}
 	ctx.restore();
@@ -220,8 +223,7 @@ StarCanvas.prototype.drawBackground = function(ctx, bg) {
 	
 		var fillWidth = bgx + (this.width / bgScale);
 		var fillHeight = bgy + (this.height / bgScale);
-		console.log("Fill: " + fillWidth+","+fillHeight);
-	
+
 		ctx.translate(-bgx, -bgy);
 		ctx.fillRect(0, 0, fillWidth, fillHeight);
 	}
