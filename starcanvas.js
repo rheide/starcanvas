@@ -218,8 +218,9 @@ StarCanvas.prototype.drawBackground = function(ctx, bg) {
 		bgx /= bg.imgScale;
 		bgy /= bg.imgScale;
 	
-		var fillWidth = bgx + (this.width / this.scale);
-		var fillHeight = bgy + (this.height / this.scale);
+		var fillWidth = bgx + (this.width / bgScale);
+		var fillHeight = bgy + (this.height / bgScale);
+		console.log("Fill: " + fillWidth+","+fillHeight);
 	
 		ctx.translate(-bgx, -bgy);
 		ctx.fillRect(0, 0, fillWidth, fillHeight);
