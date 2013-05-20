@@ -4,8 +4,63 @@ var SCPoint = function(x, y) {
 	return this;
 }
 
-function StarCanvas($canvas) {
 
+function SCDrawable(x, y, name) {
+	this.x = x;
+	this.y = y;
+	this.name = name;
+	this.scaleMin = 0.0;
+	this.scaleMax = 1000000.0;
+}
+SCDrawable.prototype.draw = function(ctx, scale) {
+	ctx.save();
+	this.drawMarker(ctx, false);
+	ctx.restore();
+}
+SCDrawable.prototype.drawMarker = function(ctx, selected) {
+	var size = 8;
+	var halfSize = size/2;
+
+	ctx.fillStyle = "#FFF";
+	ctx.beginPath();
+	ctx.arc(0, 0, size, 0, Math.PI*2, true);
+	ctx.closePath();
+	ctx.fill();
+
+	if (selected) {
+		ctx.strokeStyle = "#ff6501";
+		ctx.fillStyle = "#ff6501";
+	} else {
+		ctx.strokeStyle = "#fdcc06";
+		ctx.fillStyle = "#f29e21";
+	}
+
+	ctx.lineWidth= 6;
+	ctx.lineCap = 'round';
+
+	var curveHeight = halfSize * 3;
+	var curveWidth = halfSize * 3;
+	var sx = halfSize*3;
+
+	ctx.beginPath();
+	ctx.bezierCurveTo(-sx, -curveHeight,
+					-sx-curveWidth, 0,
+					-sx, curveHeight);
+	ctx.stroke();
+
+	ctx.beginPath();
+	ctx.bezierCurveTo(sx, -curveHeight,
+			sx+curveWidth, 0,
+			sx, curveHeight);
+	ctx.stroke();
+
+	ctx.font = '26px lcars';
+	ctx.fillText(this.name.toUpperCase(), sx+curveWidth+halfSize, 10);
+}
+
+
+function StarCanvas($canvas) {
+	this.objects = []; // objects to draw
 	this.imageCache = {};
 	this.sectorSize = 20.0; // Lightyears
 	this.baseScale = 10.0; // Pixels per lightyear
@@ -177,6 +232,24 @@ StarCanvas.prototype.draw = function() {
 	if (this.scale > this.sectorZoomMin && this.scale < this.sectorZoomMax) {
 		this.drawGrids(ctx);
 	}
+	ctx.restore();
+
+	ctx.save();
+	for (var i=0;i<this.objects.length;i++) {
+		var obj = this.objects[i];
+		this.drawObject(ctx, obj);
+	}
+	ctx.restore();
+}
+StarCanvas.prototype.drawObject = function(ctx, obj) {
+	if (obj.scaleMin > this.scale) { return; }
+	if (obj.scaleMax < this.scale) { return; }
+	ctx.save();
+	var scale = this.scale;
+	ctx.scale(scale, scale);
+	ctx.translate((obj.x * this.baseScale) - this.offsetX, (obj.y * this.baseScale) - this.offsetY);
+	ctx.scale(1 / this.baseScale, 1 / this.baseScale);
+	obj.draw(ctx, scale);
 	ctx.restore();
 }
 StarCanvas.prototype.drawBackground = function(ctx, bg) {

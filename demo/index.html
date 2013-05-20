@@ -40,8 +40,44 @@
 	</style>
 	<script src="jquery.min.js"></script>
 	<script src="jquery.mousewheel.js"></script>
+	<script src="seedrandom.js"></script>
 	<script src="../starcanvas.js"></script>
 	<script>
+		function getRandom(min, max) {
+			return min + Math.floor(Math.random() * (max - min + 1));
+		}
+		var systemNames =  ["Alpha", "Beta", "Gamma", "Delta",
+							"Omega", "Omicron", "Tau", "Phi",
+							"Chi", "Banana", "Pancake"];
+		function generateStarSystems(gridX, gridY) {
+			var systems = [];
+			Math.seedrandom(gridX + 29 * gridY);
+			var startX = gridX * 20; // LY
+			var startY = gridY * 20; // LY
+			var starCount = getRandom(1, 6);
+			for (var i=0;i<starCount;i++) {
+				var np = getRandom(0, systemNames.length-1);
+				var name = systemNames[np] + " " + getRandom(1000, 9999);
+				var xPos = getRandom(0, 2000) / 100.0;
+				var yPos = getRandom(0, 2000) / 100.0;
+				systems.push(new SCDrawable(startX + xPos, startY + yPos, name));
+			}
+			return systems;
+		}
+		function updateStarSystems(starCanvas) {
+			var startGrid = starCanvas.getGridPointAt(SCPoint(0, 0));
+			var endGrid = starCanvas.getGridPointAt(SCPoint(starCanvas.width, starCanvas.height));
+			console.log("New grid: " + startGrid.x+","+startGrid.y+" - "+endGrid.x+","+endGrid.y);
+			var objects = [];
+			for (var x=startGrid.x-1;x<=endGrid.x+1;x++) {
+				for (var y=startGrid.y-1;y<=endGrid.y+1;y++) {
+					objects = objects.concat(generateStarSystems(x, y));
+				}
+			}
+			starCanvas.objects = objects;
+			starCanvas.draw();
+		}
+
 		window.onload = function() {
 			var starCanvas = new StarCanvas($("#starcanvas"));
 
@@ -103,8 +139,15 @@
 				$("#title-link").text("StarCanvas Demo " + gridX+","+gridY);
 			});
 			starCanvas.bind("offsetChanged", function(minX, minY, maxX, maxY, scale) {
-				console.log("New offset: " + minX+","+minY+" - "+maxX+","+maxY+"  @  " + scale);
+				if (scale < 1.0) {
+					starCanvas.objects = [];
+					starCanvas.draw();
+				}
+				else {
+					updateStarSystems(starCanvas);
+				}
 			});
+			updateStarSystems(starCanvas);
 		}
 	</script>
 </head>
